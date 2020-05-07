@@ -52,11 +52,6 @@ find_package(catkin REQUIRED COMPONENTS
 #   Message2.msg
 # )
 
-add_message_files(
-  FILES
-  counter.msg
-)
-
 ## Generate services in the 'srv' folder
 # add_service_files(
 #   FILES
