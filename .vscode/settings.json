@@ -4,5 +4,6 @@
         "/opt/ros/melodic/lib/python2.7/dist-packages"
     ],
     "git.ignoreLimitWarning": true,
-    "python.pythonPath": "/usr/bin/python2"
+    "python.pythonPath": "/usr/bin/python2",
+    "cmake.configureOnOpen": false
 }
