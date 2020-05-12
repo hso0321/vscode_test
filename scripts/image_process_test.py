@@ -95,26 +95,21 @@ def find_angle(gray):
             for line in lines:
                 [[x1, y1, x2, y2]] = line
                 # cv2.line(warped, (x1, y1), (x2, y2), (0, 0, 255), 3)
-                if (x1 - x2) is not 0:
-                    angle = np.arctan((y2 - y1) / (x2 - x1))
-                else:
+                if abs(x1 - x2) < 0.1:
                     angle = np.pi/2
-                if angle > 0 and (np.pi - angle) > 0.1:
-                    angle_list.append(angle)
                 else:
-                    pass
+                    angle = np.arctan((y2 - y1) / (x2 - x1))
+
+                if angle < 0:
+                    angle += np.pi
+                elif  angle > np.pi:
+                    angle -= np.pi
+                angle_list.append(angle)
+
             sum = np.sum(angle_list, axis=0)
             print(angle_list)
             average_angle = sum / len(angle_list)
-            # try:
-            #     dx = math.cos(average_angle)
-            #     try:
-            #         dy = math.sin(average_angle)
-            #         cv2.line(warped, (160, 240), (int(160 - 30 * dx), int(240 - 30 * dy)), (255, 0, 0))
-            #     except:
-            #         print('error in this angle to sin =', average_angle)
-            # except:
-            #     print('error in this angle to cos =', average_angle)
+
     return average_angle
 
 
