@@ -30,7 +30,8 @@ def image_listener():
     # Initiate the node
     rospy.init_node('py_image_listener')
     # Setupt the subscription, camera/rb/image_raw is used in turtlebot_gazebo example
-    rospy.Subscriber("jetbot_camera/raw", Image, image_callback)
+    # rospy.Subscriber("/jetbot_camera/raw", Image, image_callback)
+    rospy.Subscriber("/video_publisher/image_raw_bgr8", Image, image_callback)
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
     cv2.destroyWindow("Image Display")

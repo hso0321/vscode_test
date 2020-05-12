@@ -8,9 +8,11 @@ import rospy    # 파이썬 기반
 import sys
 from sensor_msgs.msg import Image
 
+class image
+
 rospy.init_node('test_image_publisher')
 
-pub = rospy.Publisher('test_image/raw'', Image)
+pub = rospy.Publisher('/test_image/raw', Image, queue_size=100)
 
 rate = rospy.Rate(2)
 
