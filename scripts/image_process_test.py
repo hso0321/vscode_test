@@ -5,6 +5,7 @@ import numpy as np                # numpy
 import cv2                        # OpenCV2
 from sensor_msgs.msg import Image # ROS Image message
 from cv_bridge import CvBridge, CvBridgeError # ROS Image message -> OpenCV2 image converter
+import math
 
 #Instantiate CV Bridge
 bridge = CvBridge()
@@ -67,7 +68,7 @@ def mini_histo(gray, level):
 
 
 def sobel_filter(warped_img):
-    gray_warped = np.where(gray_warped > 250, 160, warped_img)
+    gray_warped = np.where(warped_img > 250, 160, warped_img)
     sobel_x = cv2.Sobel(gray_warped, cv2.CV_8U, 1, 0, ksize=3)
     return sobel_x
 
