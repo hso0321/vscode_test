@@ -12,6 +12,13 @@ import math
 #Instantiate CV Bridge
 bridge = CvBridge()
 
+class Angle():
+    def __init__(self):
+        self.data = 0
+        self.last = 0
+
+avg_angle = Angle()
+
 Matrix = np.array([[991.65780078, 0., 451.37431919], [0., 940.49570204, 163.20240618], [0., 0., 1.]], dtype=np.float32)
 Distortion = np.array([[-0.24267411, 0.04755508, 0.00706694, 0.01001887, -0.00422284]], dtype=np.float32)
 
@@ -107,7 +114,6 @@ def find_angle(gray):
                 angle_list.append(angle)
 
             sum = np.sum(angle_list, axis=0)
-            print(angle_list)
             average_angle = sum / len(angle_list)
 
     return average_angle
@@ -126,10 +132,14 @@ def image_callback(msg):
         # Display the converted image
         # cv2.imshow("Image Display", cv2_img)
         average_angle = find_angle(b_img)
-        print("Average_angle =", average_angle)
-        #cv2.imshow("Gray Image Display", b_img)
-
+        if average_angle is not None:
+            avg_angle.last = avg_angle.data
+            avg_angle.data = average_angle
+                #cv2.imshow("Gray Image Display", b_img)
+        else:
+            pass
         # road_angle = find_angle(b_img)
+        print("Average_angle =", avg_angle.data)
 
         # Wait 30 ms to allow image to be drawn.
         # Image won't display properly without this cv2.waitkey
