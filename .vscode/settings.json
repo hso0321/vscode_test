@@ -4,6 +4,6 @@
         "/opt/ros/melodic/lib/python2.7/dist-packages"
     ],
     "git.ignoreLimitWarning": true,
-    "python.pythonPath": "/usr/bin/python2",
+    "python.pythonPath": "/home/han/anaconda3/envs/DL-py36/bin/python",
     "cmake.configureOnOpen": false
 }

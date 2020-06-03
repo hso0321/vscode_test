@@ -124,7 +124,7 @@ def image_callback(msg):
     try:
         # Convert your ROS Image message to OpenCV2
         cv2_img = bridge.imgmsg_to_cv2(msg, "bgr8")
-    except CvBridgeError, e:
+    except CvBridgeError as e:
         print(e)
     else:
         b_img = cv2.cvtColor(cv2_img,cv2.COLOR_BGR2GRAY)
