@@ -5,6 +5,7 @@ import rospy                      # rospy
 import numpy as np                # numpy
 import cv2                        # OpenCV2
 from sensor_msgs.msg import Image # ROS Image message
+from std_msgs.msg import Float32MultiArray
 from cv_bridge import CvBridge, CvBridgeError # ROS Image message -> OpenCV2 image converter
 import math
 
@@ -713,9 +714,11 @@ def image_callback(msg):
         # # 이미지, 라인 두개를 넣고, 처리된 사진을 가져옴
         searching_img = find_LR_lines(warped, left_line, right_line)
 
+
+
         # Wait 30 ms to allow image to be drawn.
         # Image won't display properly without this cv2.waitkey
-        cv2.waitKey(30) 
+        # cv2.waitKey(30) 
         # Save your OpenCV2 image as a jpeg 
         # cv2.imwrite('camera_image.jpeg', cv2_img)
 
