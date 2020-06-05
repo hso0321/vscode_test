@@ -9,15 +9,16 @@ from std_msgs.msg import Float32MultiArray
 
 rospy.init_node('test_topic_pub')
 
-pub = rospy.Publisher('multiple array', Float32MultiArray)
+pub = rospy.Publisher('multiple_array', Float32MultiArray, queue_size=1)
 
 rate = rospy.Rate(2)
+msg_data = [0, 1, 2, 3, 4]
 
-count = [0, 1, 2, 3, 4]
+msg = Float32MultiArray(data = msg_data)
+rospy.loginfo(msg)
 
 while not rospy.is_shutdown():
-    pub.publish(count)
-    count += 1
+    pub.publish(msg)
     rate.sleep()
 
 # 디렉터리 수정

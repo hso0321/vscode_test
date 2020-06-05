@@ -7,6 +7,6 @@ def callback(msg):
 
 rospy.init_node('test_topic_sub')
 
-sub = rospy.Subscriber('multiple array', Float32MultiArray, callback)
+sub = rospy.Subscriber('multiple_array', Float32MultiArray, callback)
 
 rospy.spin()
