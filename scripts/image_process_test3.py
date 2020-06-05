@@ -56,8 +56,10 @@ class Line:
 left_line = Line()
 right_line = Line()
 
+msg_data = [0, 0, 0, 0]
 
-def distort(img, mtx, dist):
+
+def distort(img):
     return cv2.undistort(img, Matrix, Distortion, None, Matrix)
 
 
@@ -713,9 +715,17 @@ def image_callback(msg):
 
         # # 이미지, 라인 두개를 넣고, 처리된 사진을 가져옴
         searching_img = find_LR_lines(warped, left_line, right_line)
-
-
-
+        
+        if left_line.detected == True:
+            if left_line.current_fit is not None:
+                msg_data = [0, left_line.current_fit[0] if left_line.current_fit is not None else 0, left_line.current_fit[1], left_line.current_fit[2]]
+            else:
+                msg_data = [0, 0, 0, 1]
+        else:
+            msg_data = [1, 2, 3, 4]
+        line_msg = Float32MultiArray()
+        line_msg.data = msg_data
+        pub.publish(line_msg)
         # Wait 30 ms to allow image to be drawn.
         # Image won't display properly without this cv2.waitkey
         # cv2.waitKey(30) 
@@ -729,10 +739,11 @@ def image_listener():
     # Setupt the subscription, camera/rb/image_raw is used in turtlebot_gazebo example
     #rospy.Subscriber("jetbot_camera/raw", Image, image_callback)
     rospy.Subscriber("/video_publisher/image_raw_bgr8", Image, image_callback)
-
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
     cv2.destroyWindow("Image Display")
 
 if __name__ == '__main__':
+    line_msg = Float32MultiArray(data = msg_data)
+    pub = rospy.Publisher('line_data', Float32MultiArray, queue_size=1)
     image_listener()

@@ -6,15 +6,30 @@
 
 import rospy    # 파이썬 기반
 from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import MultiArrayDimension
 
 rospy.init_node('test_topic_pub')
 
 pub = rospy.Publisher('multiple_array', Float32MultiArray, queue_size=1)
 
 rate = rospy.Rate(2)
-msg_data = [0, 1, 2, 3, 4]
+# msg_data = [0, 1, 2, 3, 4]
+msg_data = [[0,1,2,3], [5,6,7,8]]
 
 msg = Float32MultiArray(data = msg_data)
+msg.layout.dim.append(MultiArrayDimension())
+msg.layout.dim.append(MultiArrayDimension())
+msg.layout.dim[0].label = 'array_number'
+msg.layout.dim[1].label = 'component'
+msg.layout.dim[0].size = 2
+msg.layout.dim[1].size = 4
+msg.layout.dim[0].stride = 2*4
+msg.layout.dim[1].stride = 4
+msg_data = [[0,1,2,3], [5,6,7,8]]
+
+msg.data = msg_data
+
+# [['num_line', 2, 8], ['component', 4, 4]]
 rospy.loginfo(msg)
 
 while not rospy.is_shutdown():
