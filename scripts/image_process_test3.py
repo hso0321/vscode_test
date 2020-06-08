@@ -5,7 +5,7 @@ import rospy                      # rospy
 import numpy as np                # numpy
 import cv2                        # OpenCV2
 from sensor_msgs.msg import Image # ROS Image message
-from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Float64
 from cv_bridge import CvBridge, CvBridgeError # ROS Image message -> OpenCV2 image converter
 import math
 
@@ -695,8 +695,39 @@ def find_LR_lines(binary_img, left_line, right_line):
         return prev_window_refer(binary_img, left_line, right_line)
 
 
+def make_center(binary_img):
+    left_fit = left_line.current_fit
+    right_fit = right_line.current_fit
+
+    ploty = np.linspace(0, binary_img.shape[0] - 1, binary_img.shape[0])    
+
+    if left_fit is not None:
+        left_plotx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
+    if right_fit is not None:
+        right_plotx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
+
+    if left_fit is not None:
+        if right_fit is not None:
+            centerx = np.mean([left_plotx, right_plotx], axis=0)
+        else:
+            centerx = np.add(left_plotx, 70)
+    else:
+        if right_fit is not None:
+            centerx = np.subtract(right_plotx, 70)
+        else:
+            centerx = None
+
+    if centerx is not None:
+        cv2.polylines(binary_img, np.int_([np.array([np.transpose(np.vstack([centerx, ploty]))])], isClosed=False, color=(255, 0, 255), thickness=8))
+
+        msg_center = Float64()
+        msg_center.data = centerx.item(120)
+        pub_lane.publish(msg_center)
+    return binary_img
+
 
 """ ros와 line detect 구문 분리용 주석"""
+
 
 def image_callback(msg):
     # print("PyImageSubscriber node  Received an image!")
@@ -716,21 +747,25 @@ def image_callback(msg):
         # # 이미지, 라인 두개를 넣고, 처리된 사진을 가져옴
         searching_img = find_LR_lines(warped, left_line, right_line)
         
-        if left_line.detected == True:
-            if left_line.current_fit is not None:
-                msg_data = [0, left_line.current_fit[0] if left_line.current_fit is not None else 0, left_line.current_fit[1], left_line.current_fit[2]]
-            else:
-                msg_data = [0, 0, 0, 1]
-        else:
-            msg_data = [1, 2, 3, 4]
-        line_msg = Float32MultiArray()
-        line_msg.data = msg_data
-        pub.publish(line_msg)
+        result = make_center(searching_img)
+
+        # if left_line.detected == True:
+        #     if left_line.current_fit is not None:
+        #         msg_data = [0, left_line.current_fit[0] if left_line.current_fit is not None else 0, left_line.current_fit[1], left_line.current_fit[2]]
+        #     else:
+        #         msg_data = [0, 0, 0, 1]
+        # else:
+        #     msg_data = [1, 2, 3, 4]
+        # line_msg = Float32MultiArray()
+        # line_msg.data = msg_data
+        # pub.publish(line_msg)
+
         # Wait 30 ms to allow image to be drawn.
         # Image won't display properly without this cv2.waitkey
         # cv2.waitKey(30) 
         # Save your OpenCV2 image as a jpeg 
         # cv2.imwrite('camera_image.jpeg', cv2_img)
+        cv2.imshow('result', result)
 
     
 def image_listener():
@@ -739,11 +774,13 @@ def image_listener():
     # Setupt the subscription, camera/rb/image_raw is used in turtlebot_gazebo example
     #rospy.Subscriber("jetbot_camera/raw", Image, image_callback)
     rospy.Subscriber("/video_publisher/image_raw_bgr8", Image, image_callback)
+    pub_lane = rospy.Publisher("/detect/lane", Float64, queue_size=1)
+
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
     cv2.destroyWindow("Image Display")
 
 if __name__ == '__main__':
-    line_msg = Float32MultiArray(data = msg_data)
-    pub = rospy.Publisher('line_data', Float32MultiArray, queue_size=1)
+    # line_msg = Float32MultiArray(data = msg_data)
+    # pub = rospy.Publisher('line_data', Float32MultiArray, queue_size=1)
     image_listener()
