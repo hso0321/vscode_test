@@ -70,7 +70,8 @@ def resize(image, size):
 def ready_process(image):
     distorted_img = distort(image)
     resized_img = resize(distorted_img, (320, 240))
-    return cv2.rotate(resized_img, cv2.ROTATE_180)
+    # return cv2.rotate(resized_img, cv2.ROTATE_180)
+    return resized_img
 
 
 def warp(image, source, destination):
@@ -115,10 +116,11 @@ def lab_combine(img): #, th_h, th_l, th_s):
     # _, test_thresh = cv2.threshold(test, 70, 255, cv2.THRESH_BINARY)
     # _, test_thresh2 = cv2.threshold(test, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
     test_blur = cv2.GaussianBlur(single_line, (3, 3), 0)
-    _, test_thresh = cv2.threshold(test_blur, 70, 255, cv2.THRESH_BINARY)
+    _, test_thresh = cv2.threshold(test_blur, 30, 255, cv2.THRESH_BINARY)
 
-
+    cv2.imshow('threshold', test_thresh)
     return test_thresh
+    # return single_line
 
 
 # .detected로 시작해서, startx를 구하고 currentx를 할당한뒤, .detected 갱신하고 .startx에 결과저장
@@ -141,6 +143,7 @@ def find_first(b_img, left_line, right_line):
             current_leftX = start_leftX
         else:
             current_leftX = None
+            print('left line fail to detect!')
             # left_line.startx = None
             # detected는 여전히 false
 
@@ -148,6 +151,7 @@ def find_first(b_img, left_line, right_line):
             current_rightX = start_rightX
         else:
             current_rightX = None
+            print('right line fail to detect!')
             # right_line.startx = None
 
 
@@ -164,6 +168,7 @@ def find_first(b_img, left_line, right_line):
         else:
             current_leftX = None
             left_line.startx = None
+            print('left line fail to detect!')
         current_rightX = right_line.startx  # 왼쪽 구했으니 오른쪽은 가져옴
         
 
@@ -180,6 +185,8 @@ def find_first(b_img, left_line, right_line):
         else:
             current_rightX = None
             right_line.startx = None
+            print('right line fail to detect!')
+
         current_leftX = left_line.startx 
 
 
@@ -560,6 +567,7 @@ def prev_window_refer(b_img, left_line, right_line):        # 좌우 모두 dete
                 else:
                     current_rightX = None
                     l_flag = 0
+                print('numbers of left index < min pixel')
         else:
             if l_flag == 0:
                 l_flag += 1
@@ -588,6 +596,7 @@ def prev_window_refer(b_img, left_line, right_line):        # 좌우 모두 dete
                 else:
                     current_rightX = None
                     r_flag = 0
+                print("numbers of right index < min pixel")
         else:
             if r_flag == 0:
                 r_flag += 1
@@ -710,15 +719,15 @@ def make_center(binary_img):
         if right_fit is not None:
             centerx = np.mean([left_plotx, right_plotx], axis=0)
         else:
-            centerx = np.add(left_plotx, 70)
+            centerx = np.add(left_plotx, 75)
     else:
         if right_fit is not None:
-            centerx = np.subtract(right_plotx, 70)
+            centerx = np.subtract(right_plotx, 75)
         else:
             centerx = None
 
     if centerx is not None:
-        cv2.polylines(binary_img, np.int_([np.array([np.transpose(np.vstack([centerx, ploty]))])], isClosed=False, color=(255, 0, 255), thickness=8))
+        cv2.polylines(binary_img, np.int_([np.array([np.transpose(np.vstack([centerx, ploty]))])]), isClosed=False, color=(255, 0, 255), thickness=8)
 
         msg_center = Float64()
         msg_center.data = centerx.item(120)
@@ -740,6 +749,7 @@ def image_callback(msg):
         resized = ready_process(cv2_img)
 
         lab = lab_combine(resized)
+        test1_pub.publish(bridge.cv2_to_imgmsg(lab, "8UC1"))
 
         # warp
         warped = bird_view(lab)
@@ -748,7 +758,7 @@ def image_callback(msg):
         searching_img = find_LR_lines(warped, left_line, right_line)
         
         result = make_center(searching_img)
-
+        test_pub.publish(bridge.cv2_to_imgmsg(result, "bgr8"))
         # if left_line.detected == True:
         #     if left_line.current_fit is not None:
         #         msg_data = [0, left_line.current_fit[0] if left_line.current_fit is not None else 0, left_line.current_fit[1], left_line.current_fit[2]]
@@ -765,17 +775,16 @@ def image_callback(msg):
         # cv2.waitKey(30) 
         # Save your OpenCV2 image as a jpeg 
         # cv2.imwrite('camera_image.jpeg', cv2_img)
-        cv2.imshow('result', result)
+        # cv2.imshow('result', result)
 
-    
+
 def image_listener():
     # Initiate the node
     rospy.init_node('py_image_listener')
     # Setupt the subscription, camera/rb/image_raw is used in turtlebot_gazebo example
     #rospy.Subscriber("jetbot_camera/raw", Image, image_callback)
-    rospy.Subscriber("/video_publisher/image_raw_bgr8", Image, image_callback)
-    pub_lane = rospy.Publisher("/detect/lane", Float64, queue_size=1)
-
+    rospy.Subscriber("/rasp_cam_pub", Image, image_callback)
+    
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
     cv2.destroyWindow("Image Display")
@@ -783,4 +792,7 @@ def image_listener():
 if __name__ == '__main__':
     # line_msg = Float32MultiArray(data = msg_data)
     # pub = rospy.Publisher('line_data', Float32MultiArray, queue_size=1)
+    pub_lane = rospy.Publisher("/detect/lane", Float64, queue_size=1)
+    test_pub = rospy.Publisher("test_result", Image, queue_size=1)
+    test1_pub = rospy.Publisher("test_threshold", Image, queue_size=1)
     image_listener()
